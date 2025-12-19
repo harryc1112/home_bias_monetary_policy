@@ -12,12 +12,14 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import os
 
-# create output directories
-if not(os.path.isdir('../../output')):
-    os.mkdir('../../output')
-    
-if not(os.path.isdir('../../output/nash_model_comp_statics')):
-    os.mkdir('../../output/nash_model_comp_statics')
+# create output directories relative to this script file (avoids depending on CWD)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# go two levels up from code/model -> repo root, then `output`
+output_root = os.path.abspath(os.path.join(script_dir, '..', '..', 'output'))
+comp_stats_dir = os.path.join(output_root, 'nash_model_comp_statics')
+
+# create directories if they don't exist
+os.makedirs(comp_stats_dir, exist_ok=True)
 
 """
 run comparative statics on r
