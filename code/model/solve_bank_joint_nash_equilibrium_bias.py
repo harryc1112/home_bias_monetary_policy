@@ -931,10 +931,10 @@ def solve_joint_eqm(
 
 
 # =============================================================================
-# 7) Smoke test
+# 7) Test
 # =============================================================================
 
-def create_params_for_smoke_test():
+def create_params_for_test():
     return {
         "alpha_F": 25.0,
         "alpha_D":  2.0,
@@ -986,7 +986,7 @@ def simulate_inputs(params, J=10, M=5, B_L=200, B_D=200, seed=42):
 
 
 if __name__ == "__main__":
-    params = create_params_for_smoke_test()
+    params = create_params_for_test()
     xiF, xiD, partL, partD, home, Ld, Lw, Dd, Dw, sizeL, sizeD, E = simulate_inputs(params, seed=42)
 
     out = solve_joint_eqm(
