@@ -920,6 +920,10 @@ def solve_joint_eqm(
     gap_hist = None
     maxfoc_hist = None
     iter_hist = None
+
+    brgap_hist = None
+    brgap_by_bank_hist = None
+
     t_ix = 0
 
     stride = int(max(1, history_stride))
@@ -936,9 +940,11 @@ def solve_joint_eqm(
         gap_hist = np.full(T, np.nan, dtype=np.float64)
         maxfoc_hist = np.full(T, np.nan, dtype=np.float64)
         iter_hist = np.full(T, -1, dtype=np.int64)
+        brgap_hist = np.full(T, np.nan, dtype=np.float64)
+        brgap_by_bank_hist = np.full((T, J), np.nan, dtype=np.float64)
 
     prev_print_foc = None
-
+    
     def _side(ws):
         return "L" if ws == 1 else ("D" if ws == 2 else "?")
 
@@ -958,6 +964,12 @@ def solve_joint_eqm(
             E_J,
             rL_min, rL_max, rD_min, rD_max
         )
+
+        # --- Nash fixed-point diagnostic: per-bank best-response distance
+        br_gap_L = np.max(np.abs(rL_br - rL_old), axis=1)  # (J,)
+        br_gap_D = np.max(np.abs(rD_br - rD_old), axis=1)  # (J,)
+        br_gap_J = np.maximum(br_gap_L, br_gap_D)          # (J,)
+        max_br_gap = float(np.max(br_gap_J))
 
         rL_new = (1.0 - damp_fp) * rL_old + damp_fp * rL_br
         rD_new = (1.0 - damp_fp) * rD_old + damp_fp * rD_br
@@ -981,6 +993,8 @@ def solve_joint_eqm(
                 gap_hist[t_ix]     = gap
                 maxfoc_hist[t_ix]  = max_foc
                 iter_hist[t_ix]    = it
+                brgap_hist[t_ix] = max_br_gap
+                brgap_by_bank_hist[t_ix, :] = br_gap_J
                 t_ix += 1
 
         if verbose and (it == 1 or it % int(max(1, print_bank_diag_every)) == 0):
@@ -1005,10 +1019,11 @@ def solve_joint_eqm(
             prev_print_foc = foc_J.copy()
 
             print(
-                f"Iter {it:03d}: gap={gap:.3e} | maxFOC(all)={max_foc:.3e} "
+                f"Iter {it:03d}: gap={gap:.3e} | maxBRgap={max_br_gap:.3e} | maxFOC(all)={max_foc:.3e} "
                 f"| bankFOC p50={p50:.2e}, p90={p90:.2e}, max={mx:.2e} "
                 f"| worst: {top_str}{improve_msg}"
             )
+
 
         rL_old, rD_old = rL_new, rD_new
 
@@ -1065,6 +1080,8 @@ def solve_joint_eqm(
             "gap": gap_hist[:t_ix],
             "max_foc": maxfoc_hist[:t_ix],
             "stride": stride,
+            "max_br_gap": brgap_hist[:t_ix],
+             "br_gap_by_bank": brgap_by_bank_hist[:t_ix],
         }
 
     return out
@@ -1151,6 +1168,7 @@ if __name__ == "__main__":
     final_x    = hist["x_by_bank"][-1, :]
     final_wm   = hist["worst_m_by_bank"][-1, :]
     final_ws   = hist["worst_side_by_bank"][-1, :]
+    
 
     order = np.argsort(final_foc)[::-1]
     print("\nFinal per-bank max|FOC| (worst to best):")
@@ -1175,6 +1193,15 @@ if __name__ == "__main__":
     x    = hist["x_by_bank"][:, j]
     wm   = hist["worst_m_by_bank"][:, j]
     ws   = hist["worst_side_by_bank"][:, j]
+    hist = out["history"]
+    for t in range(len(hist["iter"])):
+        print(
+            f"it={int(hist['iter'][t]):3d}  "
+            f"FOC={hist['foc_by_bank'][t, j]:.3e}  "
+            f"BRgap={hist['br_gap_by_bank'][t, j]:.3e}  "
+            f"x={hist['x_by_bank'][t, j]:.4f}"
+        )
+
 
     def side(ws):
         return "L" if ws == 1 else ("D" if ws == 2 else "?")
