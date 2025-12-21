@@ -1164,3 +1164,23 @@ if __name__ == "__main__":
     print("\nConvergence info:", out["info"])
     print("Max bank FOC:", float(np.max(out["bank_FOC_errors"])))
     print("Median I/D:", float(np.median(out["I_over_D"])))
+
+    hist = out["history"]
+    j = 1
+
+    iters = hist["iter"]
+    foc  = hist["foc_by_bank"][:, j]
+    focL = hist["focL_by_bank"][:, j]
+    focD = hist["focD_by_bank"][:, j]
+    x    = hist["x_by_bank"][:, j]
+    wm   = hist["worst_m_by_bank"][:, j]
+    ws   = hist["worst_side_by_bank"][:, j]
+
+    def side(ws):
+        return "L" if ws == 1 else ("D" if ws == 2 else "?")
+
+    for t in range(len(iters)):
+        print(f"it={int(iters[t]):3d}  j={j:2d}  FOC={foc[t]:.3e}  "
+            f"(L={focL[t]:.3e}, D={focD[t]:.3e})  "
+            f"worst={side(int(ws[t]))}@m={int(wm[t])}  x={x[t]:.4f}")
+
