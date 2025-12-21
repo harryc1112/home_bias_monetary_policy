@@ -319,11 +319,11 @@ def _solve_rL_market(
     rF, phi, lambda_target,
     alpha_F, gammaF, beta_c,
     sumexp_L_BM, e0_BM, zL_BM, wL_BM, rL_old_JM, xiF_J, home_JM, partL_JM,
-    sizeL_m,
+    sizeL_m, mcL_jm,
     r_min, r_max,
     max_it=80, tol=1e-10
 ):
-    cost = rF + phi * (lambda_target - x)
+    cost = rF + phi * (lambda_target - x) + mcL_jm
     r = r_init
 
     for _ in range(max_it):
@@ -375,11 +375,11 @@ def _solve_rD_market(
     rF, phi, lambda_target,
     alpha_D, beta_w, gammaD,
     sumexp_D_DM, zD_DM, wD_DM, rD_old_JM, xiD_J, home_JM, partD_JM,
-    sizeD_m,
+    sizeD_m, mcD_jm, 
     r_min, r_max,
     max_it=80, tol=1e-10
 ):
-    benefit = rF - 0.5 * phi * (lambda_target - x) * (lambda_target + x)
+    benefit = rF - 0.5 * phi * (lambda_target - x) * (lambda_target + x) - mcD_jm
     r = r_init
 
     for _ in range(max_it):
@@ -441,7 +441,7 @@ def _eval_bank_given_x(
     rF, phi, lambda_target,
     alpha_F, gammaF, beta_c,
     alpha_D, beta_w, gammaD,
-    E_j,
+    E_j, mcL_j, mcD_j, 
     rL_min, rL_max, rD_min, rD_max,
     max_market_iter
 ):
@@ -474,7 +474,7 @@ def _eval_bank_given_x(
                 rF, phi, lambda_target,
                 alpha_F, gammaF, beta_c,
                 sumexp_L_BM, e0_BM, zL_BM, wL_BM, rL_old_JM, xiF_J, home_JM, partL_JM,
-                sizeL_M[m],
+                sizeL_M[m], mcL_j[m],
                 rL_min, rL_max,
                 max_it=max_market_iter
             )
@@ -500,7 +500,7 @@ def _eval_bank_given_x(
                 rF, phi, lambda_target,
                 alpha_D, beta_w, gammaD,
                 sumexp_D_DM, zD_DM, wD_DM, rD_old_JM, xiD_J, home_JM, partD_JM,
-                sizeD_M[m],
+                sizeD_M[m], mcD_j[m],
                 rD_min, rD_max,
                 max_it=max_market_iter
             )
@@ -546,7 +546,7 @@ def _bank_best_response(
     rF, phi, lambda_target,
     alpha_F, gammaF, beta_c,
     alpha_D, beta_w, gammaD,
-    E_j,
+    E_j, mcL_j, mcD_j, 
     rL_min, rL_max, rD_min, rD_max,
     max_x_iter=40, max_market_iter=80,
     x_tol=1e-10
@@ -571,7 +571,7 @@ def _bank_best_response(
         rF, phi, lambda_target,
         alpha_F, gammaF, beta_c,
         alpha_D, beta_w, gammaD,
-        E_j,
+        E_j, mcL_j, mcD_j, 
         rL_min, rL_max, rD_min, rD_max,
         max_market_iter
     )
@@ -586,7 +586,7 @@ def _bank_best_response(
         rF, phi, lambda_target,
         alpha_F, gammaF, beta_c,
         alpha_D, beta_w, gammaD,
-        E_j,
+        E_j, mcL_j, mcD_j, 
         rL_min, rL_max, rD_min, rD_max,
         max_market_iter
     )
@@ -608,7 +608,7 @@ def _bank_best_response(
             rF, phi, lambda_target,
             alpha_F, gammaF, beta_c,
             alpha_D, beta_w, gammaD,
-            E_j,
+            E_j, mcL_j, mcD_j, 
             rL_min, rL_max, rD_min, rD_max,
             max_market_iter
         )
@@ -623,7 +623,7 @@ def _bank_best_response(
             rF, phi, lambda_target,
             alpha_F, gammaF, beta_c,
             alpha_D, beta_w, gammaD,
-            E_j,
+            E_j, mcL_j, mcD_j, 
             rL_min, rL_max, rD_min, rD_max,
             max_market_iter
         )
@@ -685,7 +685,7 @@ def _bank_best_response(
                 rF, phi, lambda_target,
                 alpha_F, gammaF, beta_c,
                 alpha_D, beta_w, gammaD,
-                E_j,
+                E_j, mcL_j, mcD_j, 
                 rL_min, rL_max, rD_min, rD_max,
                 max_market_iter
             )
@@ -726,7 +726,7 @@ def _bank_best_response(
                 rF, phi, lambda_target,
                 alpha_F, gammaF, beta_c,
                 alpha_D, beta_w, gammaD,
-                E_j,
+                E_j, mcL_j, mcD_j, 
                 rL_min, rL_max, rD_min, rD_max,
                 max_market_iter
             )
@@ -765,7 +765,7 @@ def _update_all_banks(
     rF, phi, lambda_target,
     alpha_F, gammaF, beta_c,
     alpha_D, beta_w, gammaD,
-    E_J,
+    E_J, mcL_JM, mcD_JM, 
     rL_min, rL_max, rD_min, rD_max
 ):
     J, M = rL_old_JM.shape
@@ -795,7 +795,7 @@ def _update_all_banks(
             rF, phi, lambda_target,
             alpha_F, gammaF, beta_c,
             alpha_D, beta_w, gammaD,
-            E_J[j],
+            E_J[j], mcL_JM[j], mcD_JM[j],
             rL_min, rL_max, rD_min, rD_max
         )
 
@@ -826,7 +826,7 @@ def solve_joint_eqm(
     L_draws_BM, L_weights_BM,
     D_draws_DM, D_weights_DM,
     sizeL_M, sizeD_M,
-    E_J,
+    E_J, mcL_JM, mcD_JM,
     rL_min=0.0, rL_max=10.0,
     rD_min=-5.0, rD_max=10.0,
     max_iter=400, tol=1e-6, tol_foc=1e-6, damp_fp=0.5,
@@ -961,7 +961,7 @@ def solve_joint_eqm(
             rF, phi, lambda_target,
             alpha_F, gammaF, beta_c,
             alpha_D, beta_w, gammaD,
-            E_J,
+            E_J, mcL_JM, mcD_JM, 
             rL_min, rL_max, rD_min, rD_max
         )
 
@@ -1059,6 +1059,8 @@ def solve_joint_eqm(
         "I_j": I_j,
         "I_over_D": I_over_D,
         "x_J": x_J,
+        "mcL_JM": mcL_JM, 
+        "mcD_JM": mcD_JM, 
         "bank_FOC_errors": foc_J,
         "bank_FOC_L": focL_J,
         "bank_FOC_D": focD_J,
@@ -1093,15 +1095,15 @@ def solve_joint_eqm(
 
 def create_params_for_test():
     return {
-        "alpha_F": 25.0,
-        "alpha_D":  2.0,
-        "beta_w":   0.01,
+        "alpha_F": 65.0,
+        "alpha_D": 25.0,
+        "beta_w":   0.0001,
         "gammaF":   0.4,
-        "beta_c":  -0.01,
+        "beta_c":  -0.0001,
         "gammaD":   0.2,
         "rF":       1.02,
-        "phi":      0.5,
-        "lambda":   0.2,
+        "phi":      0.005,
+        "lambda":   0.3,
         "r_nonbank": 1.05,
     }
 
@@ -1109,6 +1111,7 @@ def create_params_for_test():
 def simulate_inputs(params, J=10, M=5, B_L=200, B_D=200, seed=42):
     rng = np.random.default_rng(seed)
 
+    # market participation flag 
     partL = rng.random((J, M)) < 0.85
     partD = rng.random((J, M)) < 0.85
     for m in range(M):
@@ -1118,28 +1121,42 @@ def simulate_inputs(params, J=10, M=5, B_L=200, B_D=200, seed=42):
         if not partL[j, :].any(): partL[j, rng.integers(M)] = True
         if not partD[j, :].any(): partD[j, rng.integers(M)] = True
 
+    # home country indicator
     home = rng.random((J, M)) < 0.5
 
+    # market sizes
     sizeL = 75.0 * (1.1 + 0.4 * rng.random(M))
     sizeD = 100.0 * (1.5 + 0.6 * rng.random(M))
 
+    # taste shocks for each bank in loan and deposit markets
     xiF = rng.normal(0.0, 0.7, size=J)
     xiD = rng.normal(0.0, 0.7, size=J)
 
+    # equity endowment
     E = 100.0 * np.clip(0.05 + 0.10 * rng.random(J), 0.05, 0.2)
 
-    L_draws = rng.lognormal(mean=0.0, sigma=0.7, size=(B_L, M))
-    D_draws = rng.lognormal(mean=0.0, sigma=0.7, size=(B_D, M))
+    # distribution of borrowers in the loan and deposit markets
+    L_draws = rng.lognormal(mean=1.0, sigma=0.7, size=(B_L, M))
+    D_draws = rng.lognormal(mean=1.0, sigma=0.7, size=(B_D, M))
 
+    # weights on each of the borrower draws
     L_weights = np.full((B_L, M), 1.0 / B_L, dtype=float)
     D_weights = np.full((B_D, M), 1.0 / B_D, dtype=float)
+    
+    # add simulation of the marginal costs
+    mcL_J = rng.normal(loc = 0.001, scale = 0.025, size = (J))
+    mcD_J = rng.normal(loc = 0.0005, scale = 0.01, size = (J))
+    mcL_JM = np.ones_like(partL) * mcL_J[:, np.newaxis]
+    mcD_JM = np.ones_like(partD) * mcD_J[:, np.newaxis]
 
-    return xiF, xiD, partL, partD, home, L_draws, L_weights, D_draws, D_weights, sizeL, sizeD, E
+    return (xiF, xiD, partL, partD, home, L_draws, L_weights, D_draws, D_weights, 
+            sizeL, sizeD, E, mcL_JM, mcD_JM)
 
 
 if __name__ == "__main__":
     params = create_params_for_test()
-    xiF, xiD, partL, partD, home, Ld, Lw, Dd, Dw, sizeL, sizeD, E = simulate_inputs(params, seed=42)
+    (xiF, xiD, partL, partD, home, Ld, Lw, Dd, Dw, 
+     sizeL, sizeD, E, mcL_JM, mcD_JM) = simulate_inputs(params, seed=42)
 
     out = solve_joint_eqm(
         params,
@@ -1148,7 +1165,7 @@ if __name__ == "__main__":
         Ld, Lw,
         Dd, Dw,
         sizeL, sizeD,
-        E,
+        E, mcL_JM, mcD_JM, 
         rL_min=0.5, rL_max=5.0,
         rD_min=-1.0, rD_max=5.0,
         max_iter=200, tol=1e-6, tol_foc=1e-6, damp_fp=0.5,

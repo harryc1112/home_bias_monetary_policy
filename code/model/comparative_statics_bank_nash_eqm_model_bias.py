@@ -77,7 +77,7 @@ def solve_from_primitives(
 ):
     (xiF, xiD, partL, partD, home,
      Ld, Lw, Dd, Dw,
-     sizeL, sizeD, E) = primitives
+     sizeL, sizeD, E, mcL, mcD) = primitives
 
     out = bank_nash_eqm.solve_joint_eqm(
         params,
@@ -86,7 +86,7 @@ def solve_from_primitives(
         Ld, Lw,
         Dd, Dw,
         sizeL, sizeD,
-        E,
+        E, mcL, mcD, 
         rL_min=rL_min, rL_max=rL_max,
         rD_min=rD_min, rD_max=rD_max,
         max_iter=max_iter,
@@ -188,15 +188,15 @@ def make_base_params():
         p = bank_nash_eqm.create_params_for_smoke_test()
     else:
         p = {
-            "alpha_F": 25.0,
-            "alpha_D": 2.0,
-            "beta_w": 0.01,
+            "alpha_F": 35.0,
+            "alpha_D": 20.0,
+            "beta_w": 0.0001,
             "gammaF": 0.4,
-            "beta_c": -0.01,
+            "beta_c": -0.0001,
             "gammaD": 0.2,
             "rF": 1.02,
-            "phi": 0.5,
-            "lambda": 0.2,
+            "phi": 0.005,
+            "lambda": 0.3,
             "r_nonbank": 1.05,
         }
     p.setdefault("equity_share", 0.17) 
